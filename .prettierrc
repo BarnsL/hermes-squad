@@ -1,0 +1,90 @@
+{
+  "// ==========================================================================": "",
+  "// Hermes Squad — Prettier Configuration": "",
+  "// ==========================================================================": "",
+  "// Consistent code formatting across the entire project.": "",
+  "// Prettier handles formatting so ESLint can focus on code quality.": "",
+  "// ==========================================================================": "",
+
+  "// --- Line Width ---": "",
+  "// 100 chars is a good balance between readability and screen real estate": "",
+  "printWidth": 100,
+
+  "// --- Indentation ---": "",
+  "// 2 spaces — standard for TypeScript/Node.js ecosystem": "",
+  "tabWidth": 2,
+  "useTabs": false,
+
+  "// --- Semicolons ---": "",
+  "// Always use semicolons — prevents ASI edge cases": "",
+  "semi": true,
+
+  "// --- Quotes ---": "",
+  "// Single quotes for JS/TS (double quotes for JSON is automatic)": "",
+  "singleQuote": true,
+
+  "// --- JSX Quotes ---": "",
+  "// N/A for this project but set for consistency": "",
+  "jsxSingleQuote": false,
+
+  "// --- Trailing Commas ---": "",
+  "// 'all' — enables cleaner git diffs and easier reordering": "",
+  "trailingComma": "all",
+
+  "// --- Bracket Spacing ---": "",
+  "// { foo } not {foo} — more readable": "",
+  "bracketSpacing": true,
+
+  "// --- Bracket Same Line ---": "",
+  "// Opening bracket on same line as statement": "",
+  "bracketSameLine": false,
+
+  "// --- Arrow Function Parentheses ---": "",
+  "// Always use parens: (x) => x — consistent and easier to add params": "",
+  "arrowParens": "always",
+
+  "// --- End of Line ---": "",
+  "// LF (Unix) — cross-platform consistency via .gitattributes": "",
+  "endOfLine": "lf",
+
+  "// --- Prose Wrap ---": "",
+  "// Preserve line breaks in markdown (don't auto-wrap)": "",
+  "proseWrap": "preserve",
+
+  "// --- HTML Whitespace Sensitivity ---": "",
+  "htmlWhitespaceSensitivity": "css",
+
+  "// --- Embedded Language Formatting ---": "",
+  "// Format embedded code in template literals (e.g., SQL, GraphQL)": "",
+  "embeddedLanguageFormatting": "auto",
+
+  "// --- Single Attribute Per Line ---": "",
+  "// Keep attributes on one line unless they exceed printWidth": "",
+  "singleAttributePerLine": false,
+
+  "// --- File-Specific Overrides ---": "",
+  "overrides": [
+    {
+      "files": "*.json",
+      "options": {
+        "printWidth": 80,
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": "*.yml",
+      "options": {
+        "printWidth": 120,
+        "tabWidth": 2,
+        "singleQuote": false
+      }
+    },
+    {
+      "files": "*.md",
+      "options": {
+        "printWidth": 80,
+        "proseWrap": "always"
+      }
+    }
+  ]
+}

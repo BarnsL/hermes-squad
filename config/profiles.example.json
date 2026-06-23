@@ -1,0 +1,395 @@
+{
+  "// ==========================================================================": "",
+  "// Hermes Squad — Agent Profiles Configuration (Example)": "",
+  "// ==========================================================================": "",
+  "// This file defines your agent profiles and their configurations.": "",
+  "// Copy this to ~/.hermes-squad/config/profiles.json and customize.": "",
+  "//": "",
+  "// Each profile defines:": "",
+  "//   - How to spawn the agent (command, args, env)": "",
+  "//   - UI appearance (color, shortcut, display name)": "",
+  "//   - Behavioral settings (worktrees, capabilities)": "",
+  "//   - Resource limits (context window, timeout)": "",
+  "//": "",
+  "// Similar to Claude Squad's config.json but with extended capabilities": "",
+  "// for multi-protocol (ACP/MCP) communication.": "",
+  "// ==========================================================================": "",
+
+  "// Which profile to use by default when creating a new session": "",
+  "defaultProfile": "claude",
+
+  "// Profiles that appear in the quick-launch menu (order matters)": "",
+  "favorites": ["claude", "kiro", "codex"],
+
+  "// --- Profile Definitions ---": "",
+  "profiles": {
+    "// ========================================================================": "",
+    "// Claude Code — Anthropic's CLI coding agent": "",
+    "// Excellent at: Architecture, complex refactoring, code review": "",
+    "// ========================================================================": "",
+    "claude": {
+      "displayName": "Claude Code",
+      "description": "Anthropic's AI coding agent with deep reasoning",
+
+      "// --- Process Configuration ---": "",
+      "command": "claude",
+      "args": [
+        "--chat",
+        "--output-format", "stream-json"
+      ],
+      "// Shell to use for spawning (null = system default)": "",
+      "shell": null,
+      "// Working directory override (null = inherit from session)": "",
+      "cwd": null,
+      "// Environment variables injected into the agent process": "",
+      "env": {
+        "// API key is loaded from .env or system keychain": "",
+        "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+        "// Disable auto-updates within the agent": "",
+        "CLAUDE_CODE_DISABLE_UPDATE_CHECK": "1"
+      },
+
+      "// --- UI Configuration ---": "",
+      "color": "#FF6B35",
+      "icon": "🧡",
+      "shortcut": "1",
+      "// Panel position preference: 'auto', 'left', 'right', 'top', 'bottom'": "",
+      "panelPosition": "auto",
+
+      "// --- Behavior ---": "",
+      "worktreeEnabled": true,
+      "// Branch name for this agent's worktree (template)": "",
+      "branchTemplate": "hermes/claude/{task}",
+
+      "// Capabilities declared by this agent (for ACP routing)": "",
+      "capabilities": [
+        "coding",
+        "debugging",
+        "code-review",
+        "architecture",
+        "refactoring",
+        "documentation"
+      ],
+
+      "// Custom system prompt prepended to all messages": "",
+      "systemContext": "You are working as part of a multi-agent team orchestrated by Hermes Squad. Focus on your assigned task and communicate results clearly.",
+
+      "// --- Resource Limits ---": "",
+      "// Maximum context window (tokens)": "",
+      "maxContext": 200000,
+      "// Session timeout (minutes, 0 = no timeout)": "",
+      "sessionTimeout": 0,
+      "// Max output buffer before truncation (bytes)": "",
+      "maxOutputBuffer": 5242880,
+
+      "// --- Health Monitoring ---": "",
+      "healthCheck": {
+        "// How to detect the agent is ready for input": "",
+        "type": "output",
+        "// Regex pattern that indicates agent is waiting for input": "",
+        "readyPattern": "❯|\\$|>\\s*$",
+        "// How long to wait for the agent to become ready": "",
+        "timeoutMs": 15000,
+        "// Interval for periodic health checks": "",
+        "intervalMs": 30000
+      },
+
+      "// --- Advanced ---": "",
+      "// MCP tools this agent can access (empty = all)": "",
+      "mcpTools": [],
+      "// Rate limiting (messages per minute)": "",
+      "rateLimitMpm": 30,
+      "// Auto-restart on crash": "",
+      "autoRestart": true,
+      "// Max restart attempts before giving up": "",
+      "maxRestarts": 3
+    },
+
+    "// ========================================================================": "",
+    "// Kiro — AWS's spec-driven development agent": "",
+    "// Excellent at: Spec-driven dev, testing, structured workflows": "",
+    "// ========================================================================": "",
+    "kiro": {
+      "displayName": "Kiro",
+      "description": "AWS's spec-driven development agent",
+      "command": "kiro",
+      "args": ["--chat", "--non-interactive"],
+      "shell": null,
+      "cwd": null,
+      "env": {
+        "AWS_PROFILE": "${env:AWS_PROFILE}"
+      },
+      "color": "#4ECDC4",
+      "icon": "🎯",
+      "shortcut": "2",
+      "panelPosition": "auto",
+      "worktreeEnabled": true,
+      "branchTemplate": "hermes/kiro/{task}",
+      "capabilities": [
+        "coding",
+        "spec-driven",
+        "testing",
+        "documentation",
+        "structured-workflows"
+      ],
+      "systemContext": "",
+      "maxContext": 200000,
+      "sessionTimeout": 0,
+      "maxOutputBuffer": 5242880,
+      "healthCheck": {
+        "type": "output",
+        "readyPattern": "❯|\\$|>\\s*$",
+        "timeoutMs": 15000,
+        "intervalMs": 30000
+      },
+      "mcpTools": [],
+      "rateLimitMpm": 30,
+      "autoRestart": true,
+      "maxRestarts": 3
+    },
+
+    "// ========================================================================2": "",
+    "// OpenAI Codex CLI — OpenAI's coding agent": "",
+    "// Excellent at: Fast implementation, scripting, utilities": "",
+    "// ========================================================================2": "",
+    "codex": {
+      "displayName": "Codex CLI",
+      "description": "OpenAI's fast coding agent",
+      "command": "codex",
+      "args": ["--full-auto"],
+      "shell": null,
+      "cwd": null,
+      "env": {
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      },
+      "color": "#10A37F",
+      "icon": "💚",
+      "shortcut": "3",
+      "panelPosition": "auto",
+      "worktreeEnabled": true,
+      "branchTemplate": "hermes/codex/{task}",
+      "capabilities": [
+        "coding",
+        "implementation",
+        "scripting",
+        "quick-tasks"
+      ],
+      "systemContext": "",
+      "maxContext": 128000,
+      "sessionTimeout": 0,
+      "maxOutputBuffer": 5242880,
+      "healthCheck": {
+        "type": "output",
+        "readyPattern": "❯|\\$|>\\s*$",
+        "timeoutMs": 10000,
+        "intervalMs": 30000
+      },
+      "mcpTools": [],
+      "rateLimitMpm": 60,
+      "autoRestart": true,
+      "maxRestarts": 3
+    },
+
+    "// ========================================================================3": "",
+    "// Hermes Agent — The orchestrator agent": "",
+    "// Excellent at: Multi-agent coordination, planning, delegation": "",
+    "// ========================================================================3": "",
+    "hermes": {
+      "displayName": "Hermes Agent",
+      "description": "Multi-agent orchestrator with planning capabilities",
+      "command": "hermes-agent",
+      "args": ["--interactive", "--orchestrator"],
+      "shell": null,
+      "cwd": null,
+      "env": {
+        "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+        "HERMES_ROLE": "orchestrator"
+      },
+      "color": "#9B59B6",
+      "icon": "🪶",
+      "shortcut": "4",
+      "panelPosition": "auto",
+      "worktreeEnabled": false,
+      "branchTemplate": "",
+      "capabilities": [
+        "orchestration",
+        "planning",
+        "task-decomposition",
+        "code-review",
+        "multi-agent-coordination"
+      ],
+      "systemContext": "You are the orchestrator agent. Your role is to break down complex tasks, delegate to specialist agents, and coordinate their work.",
+      "maxContext": 200000,
+      "sessionTimeout": 0,
+      "maxOutputBuffer": 10485760,
+      "healthCheck": {
+        "type": "output",
+        "readyPattern": "hermes>|❯|\\$",
+        "timeoutMs": 20000,
+        "intervalMs": 30000
+      },
+      "mcpTools": ["session_create", "session_list", "session_send_message"],
+      "rateLimitMpm": 20,
+      "autoRestart": true,
+      "maxRestarts": 5
+    },
+
+    "// ========================================================================4": "",
+    "// Google Gemini CLI": "",
+    "// Excellent at: Long-context analysis, multimodal, research": "",
+    "// ========================================================================4": "",
+    "gemini": {
+      "displayName": "Gemini CLI",
+      "description": "Google's multimodal AI with massive context window",
+      "command": "gemini",
+      "args": ["--chat", "--model", "gemini-2.5-pro"],
+      "shell": null,
+      "cwd": null,
+      "env": {
+        "GOOGLE_AI_API_KEY": "${env:GOOGLE_AI_API_KEY}"
+      },
+      "color": "#4285F4",
+      "icon": "💎",
+      "shortcut": "5",
+      "panelPosition": "auto",
+      "worktreeEnabled": true,
+      "branchTemplate": "hermes/gemini/{task}",
+      "capabilities": [
+        "coding",
+        "analysis",
+        "research",
+        "multimodal",
+        "long-context"
+      ],
+      "systemContext": "",
+      "maxContext": 1000000,
+      "sessionTimeout": 0,
+      "maxOutputBuffer": 5242880,
+      "healthCheck": {
+        "type": "output",
+        "readyPattern": "❯|\\$|>\\s*$",
+        "timeoutMs": 12000,
+        "intervalMs": 30000
+      },
+      "mcpTools": [],
+      "rateLimitMpm": 30,
+      "autoRestart": true,
+      "maxRestarts": 3
+    },
+
+    "// ========================================================================5": "",
+    "// Aider — Open-source pair programming agent": "",
+    "// Excellent at: Pair programming, git-aware edits, iterative refinement": "",
+    "// ========================================================================5": "",
+    "aider": {
+      "displayName": "Aider",
+      "description": "Open-source AI pair programming in the terminal",
+      "command": "aider",
+      "args": [
+        "--no-auto-commits",
+        "--no-suggest-shell-commands",
+        "--model", "claude-sonnet-4-20250514"
+      ],
+      "shell": null,
+      "cwd": null,
+      "env": {
+        "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+        "// Can also use OpenAI: OPENAI_API_KEY": "",
+        "AIDER_NO_AUTO_COMMITS": "1"
+      },
+      "color": "#F39C12",
+      "icon": "🤝",
+      "shortcut": "6",
+      "panelPosition": "auto",
+      "worktreeEnabled": true,
+      "branchTemplate": "hermes/aider/{task}",
+      "capabilities": [
+        "coding",
+        "pair-programming",
+        "git-aware",
+        "refactoring",
+        "iterative"
+      ],
+      "systemContext": "",
+      "maxContext": 128000,
+      "sessionTimeout": 0,
+      "maxOutputBuffer": 5242880,
+      "healthCheck": {
+        "type": "output",
+        "readyPattern": "aider>|>\\s*$",
+        "timeoutMs": 20000,
+        "intervalMs": 30000
+      },
+      "mcpTools": [],
+      "rateLimitMpm": 30,
+      "autoRestart": true,
+      "maxRestarts": 3
+    }
+  },
+
+  "// --- Profile Groups ---": "",
+  "// Pre-configured sets of agents for common workflows": "",
+  "groups": {
+    "// Full team: orchestrator + specialists": "",
+    "full-team": {
+      "description": "Full agent team with orchestrator",
+      "profiles": ["hermes", "claude", "kiro", "codex"],
+      "// The orchestrator agent that coordinates the others": "",
+      "orchestrator": "hermes"
+    },
+
+    "// Review pair: one implements, one reviews": "",
+    "review-pair": {
+      "description": "Implementation + code review pair",
+      "profiles": ["claude", "kiro"],
+      "orchestrator": null
+    },
+
+    "// Speed run: fast agents for quick tasks": "",
+    "speed-run": {
+      "description": "Fast agents for rapid iteration",
+      "profiles": ["codex", "claude"],
+      "orchestrator": null
+    },
+
+    "// Research: deep analysis with large context": "",
+    "research": {
+      "description": "Large-context agents for research and analysis",
+      "profiles": ["gemini", "claude"],
+      "orchestrator": null
+    }
+  },
+
+  "// --- Custom Agent Template ---": "",
+  "// Use this as a starting point for adding your own agents": "",
+  "_template": {
+    "displayName": "My Custom Agent",
+    "description": "Description of what this agent does",
+    "command": "/path/to/agent",
+    "args": [],
+    "shell": null,
+    "cwd": null,
+    "env": {},
+    "color": "#FFFFFF",
+    "icon": "🤖",
+    "shortcut": "7",
+    "panelPosition": "auto",
+    "worktreeEnabled": true,
+    "branchTemplate": "hermes/custom/{task}",
+    "capabilities": ["coding"],
+    "systemContext": "",
+    "maxContext": 100000,
+    "sessionTimeout": 0,
+    "maxOutputBuffer": 5242880,
+    "healthCheck": {
+      "type": "output",
+      "readyPattern": "\\$|>\\s*$",
+      "timeoutMs": 10000,
+      "intervalMs": 30000
+    },
+    "mcpTools": [],
+    "rateLimitMpm": 30,
+    "autoRestart": true,
+    "maxRestarts": 3
+  }
+}

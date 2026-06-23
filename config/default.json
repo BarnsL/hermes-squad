@@ -1,0 +1,355 @@
+{
+  "// ==========================================================================": "",
+  "// Hermes Squad — Default Configuration": "",
+  "// ==========================================================================": "",
+  "// This is the base configuration that ships with the application.": "",
+  "// Users can override any value via:": "",
+  "//   1. ~/.hermes-squad/config/config.json (user-level overrides)": "",
+  "//   2. .hermes-squad.json in project root (project-level overrides)": "",
+  "//   3. Environment variables (HERMES_* prefix)": "",
+  "//   4. CLI flags (highest priority)": "",
+  "//": "",
+  "// Priority: CLI > env > project config > user config > this file": "",
+  "// ==========================================================================": "",
+
+  "version": "1.0.0",
+
+  "// --- Application Settings ---": "",
+  "app": {
+    "// Mode: 'electron' (GUI), 'tui' (terminal), 'server' (headless API), 'daemon' (background)": "",
+    "mode": "tui",
+
+    "// Theme for TUI/Electron: 'dark', 'light', 'auto' (follows system)": "",
+    "theme": "auto",
+
+    "// Language/locale for UI strings": "",
+    "locale": "en",
+
+    "// Check for updates on startup": "",
+    "checkUpdates": true,
+
+    "// Send anonymous usage analytics (opt-in)": "",
+    "telemetry": false,
+
+    "// Log level: 'debug', 'info', 'warn', 'error'": "",
+    "logLevel": "info",
+
+    "// Log format: 'pretty' (colored, human-readable) or 'json' (structured)": "",
+    "logFormat": "pretty",
+
+    "// Maximum log file size before rotation (in MB)": "",
+    "logMaxSizeMB": 50,
+
+    "// Number of rotated log files to keep": "",
+    "logRetentionCount": 5
+  },
+
+  "// --- Session Management ---": "",
+  "sessions": {
+    "// Maximum number of concurrent agent sessions": "",
+    "maxConcurrent": 5,
+
+    "// Default session timeout (in minutes, 0 = no timeout)": "",
+    "timeoutMinutes": 0,
+
+    "// Auto-save session state interval (in seconds)": "",
+    "autoSaveIntervalSec": 30,
+
+    "// Enable session recovery after crash/restart": "",
+    "enableRecovery": true,
+
+    "// Maximum scrollback buffer per session (in lines)": "",
+    "maxScrollback": 10000,
+
+    "// Auto-start these agents on launch (empty = none)": "",
+    "autoStart": []
+  },
+
+  "// --- Git Integration ---": "",
+  "git": {
+    "// Enable git worktrees for session isolation": "",
+    "enableWorktrees": true,
+
+    "// Branch name prefix for agent worktrees": "",
+    "branchPrefix": "hermes/",
+
+    "// Auto-commit changes when agent session ends": "",
+    "autoCommit": false,
+
+    "// Commit message template (variables: {agent}, {timestamp}, {summary})": "",
+    "commitTemplate": "hermes({agent}): {summary}",
+
+    "// Auto-merge worktree back to base branch on session end": "",
+    "autoMerge": false,
+
+    "// Strategy for auto-merge: 'merge', 'rebase', 'squash'": "",
+    "mergeStrategy": "merge",
+
+    "// Show diff summary in TUI when session ends": "",
+    "showDiffOnEnd": true
+  },
+
+  "// --- Agent Profiles ---": "",
+  "// Each profile defines how to spawn and communicate with a coding agent": "",
+  "profiles": {
+    "claude": {
+      "// Display name shown in the UI": "",
+      "displayName": "Claude Code",
+      "// Command to spawn the agent": "",
+      "command": "claude",
+      "// Arguments passed to the command": "",
+      "args": ["--chat"],
+      "// Working directory (empty = project root)": "",
+      "cwd": "",
+      "// Environment variables to pass to the agent process": "",
+      "env": {},
+      "// TUI color for this agent's panel border and status": "",
+      "color": "#FF6B35",
+      "// Keyboard shortcut to focus this agent's panel (1-9)": "",
+      "shortcut": "1",
+      "// Whether this agent supports git worktree isolation": "",
+      "worktreeEnabled": true,
+      "// Agent capabilities (used for ACP task routing)": "",
+      "capabilities": ["coding", "debugging", "code-review", "architecture", "refactoring"],
+      "// Custom prompt prefix sent before user messages": "",
+      "systemContext": "",
+      "// Max tokens/context window the agent supports": "",
+      "maxContext": 200000,
+      "// Health check: how to verify the agent is responsive": "",
+      "healthCheck": {
+        "type": "output",
+        "pattern": "\\$|>|❯",
+        "timeoutMs": 10000
+      }
+    },
+
+    "kiro": {
+      "displayName": "Kiro",
+      "command": "kiro",
+      "args": ["--chat"],
+      "cwd": "",
+      "env": {},
+      "color": "#4ECDC4",
+      "shortcut": "2",
+      "worktreeEnabled": true,
+      "capabilities": ["coding", "spec-driven", "testing", "documentation"],
+      "systemContext": "",
+      "maxContext": 200000,
+      "healthCheck": {
+        "type": "output",
+        "pattern": "\\$|>|❯",
+        "timeoutMs": 10000
+      }
+    },
+
+    "codex": {
+      "displayName": "Codex CLI",
+      "command": "codex",
+      "args": [],
+      "cwd": "",
+      "env": {},
+      "color": "#10A37F",
+      "shortcut": "3",
+      "worktreeEnabled": true,
+      "capabilities": ["coding", "implementation", "scripting"],
+      "systemContext": "",
+      "maxContext": 128000,
+      "healthCheck": {
+        "type": "output",
+        "pattern": "\\$|>|❯",
+        "timeoutMs": 10000
+      }
+    },
+
+    "hermes": {
+      "displayName": "Hermes Agent",
+      "command": "hermes-agent",
+      "args": ["--interactive"],
+      "cwd": "",
+      "env": {},
+      "color": "#9B59B6",
+      "shortcut": "4",
+      "worktreeEnabled": true,
+      "capabilities": ["coding", "orchestration", "multi-agent", "planning"],
+      "systemContext": "",
+      "maxContext": 200000,
+      "healthCheck": {
+        "type": "output",
+        "pattern": "\\$|>|❯",
+        "timeoutMs": 15000
+      }
+    },
+
+    "gemini": {
+      "displayName": "Gemini CLI",
+      "command": "gemini",
+      "args": ["--chat"],
+      "cwd": "",
+      "env": {},
+      "color": "#4285F4",
+      "shortcut": "5",
+      "worktreeEnabled": true,
+      "capabilities": ["coding", "analysis", "research", "multimodal"],
+      "systemContext": "",
+      "maxContext": 1000000,
+      "healthCheck": {
+        "type": "output",
+        "pattern": "\\$|>|❯",
+        "timeoutMs": 10000
+      }
+    },
+
+    "aider": {
+      "displayName": "Aider",
+      "command": "aider",
+      "args": ["--no-auto-commits"],
+      "cwd": "",
+      "env": {},
+      "color": "#F39C12",
+      "shortcut": "6",
+      "worktreeEnabled": true,
+      "capabilities": ["coding", "pair-programming", "git-aware", "refactoring"],
+      "systemContext": "",
+      "maxContext": 128000,
+      "healthCheck": {
+        "type": "output",
+        "pattern": "aider>|\\$",
+        "timeoutMs": 15000
+      }
+    }
+  },
+
+  "// --- ACP (Agent Communication Protocol) ---": "",
+  "acp": {
+    "// Enable the ACP server for inter-agent communication": "",
+    "enabled": true,
+
+    "// ACP server port": "",
+    "port": 3848,
+
+    "// Transport mode: 'stdio' (via pipes) or 'http' (REST/WebSocket)": "",
+    "transport": "stdio",
+
+    "// Maximum message size in bytes (1MB default)": "",
+    "maxMessageSize": 1048576,
+
+    "// Task delegation timeout (in milliseconds)": "",
+    "taskTimeoutMs": 60000,
+
+    "// Enable agent discovery (agents can find each other's capabilities)": "",
+    "enableDiscovery": true,
+
+    "// Message queue size per agent": "",
+    "messageQueueSize": 100
+  },
+
+  "// --- MCP (Model Context Protocol) ---": "",
+  "mcp": {
+    "// Enable the MCP server (exposes Hermes capabilities to external tools)": "",
+    "enabled": true,
+
+    "// MCP transport: 'stdio' or 'http'": "",
+    "transport": "stdio",
+
+    "// HTTP port (only used when transport is 'http')": "",
+    "httpPort": 3849,
+
+    "// Registered MCP tools to expose": "",
+    "tools": [
+      "session_create",
+      "session_list",
+      "session_send_message",
+      "session_stop",
+      "agent_status",
+      "skill_execute"
+    ],
+
+    "// Resource URIs to expose": "",
+    "resources": [
+      "hermes://sessions/*/output",
+      "hermes://sessions/*/diff",
+      "hermes://config"
+    ]
+  },
+
+  "// --- Skills System ---": "",
+  "skills": {
+    "// Directory for user-installed skills": "",
+    "userDir": "~/.hermes-squad/skills",
+
+    "// Enable hot-reloading of skills during development": "",
+    "hotReload": false,
+
+    "// Maximum concurrent skill executions": "",
+    "maxConcurrentExecutions": 5,
+
+    "// Skill execution timeout (in milliseconds)": "",
+    "executionTimeoutMs": 30000,
+
+    "// Skills marketplace URL (for browsing/installing community skills)": "",
+    "marketplaceUrl": "https://skills.hermes-squad.dev"
+  },
+
+  "// --- Server Mode Configuration ---": "",
+  "server": {
+    "// HTTP API port": "",
+    "port": 3847,
+
+    "// Enable CORS (for web UI integration)": "",
+    "cors": true,
+
+    "// CORS allowed origins": "",
+    "corsOrigins": ["http://localhost:3000", "http://localhost:5173"],
+
+    "// Require authentication for API access": "",
+    "requireAuth": true,
+
+    "// Rate limiting (requests per minute per client)": "",
+    "rateLimitRpm": 120,
+
+    "// Enable WebSocket for real-time updates": "",
+    "enableWebSocket": true
+  },
+
+  "// --- Database / Storage ---": "",
+  "storage": {
+    "// Storage backend: 'sqlite' (local) or 'postgres' (for teams/server mode)": "",
+    "backend": "sqlite",
+
+    "// SQLite database path (relative to data directory)": "",
+    "sqlitePath": "hermes-squad.db",
+
+    "// PostgreSQL connection URL (only used when backend is 'postgres')": "",
+    "postgresUrl": "",
+
+    "// Enable session history persistence": "",
+    "persistHistory": true,
+
+    "// Maximum history entries to retain": "",
+    "maxHistoryEntries": 1000
+  },
+
+  "// --- Keyboard Shortcuts (TUI mode) ---": "",
+  "shortcuts": {
+    "// Switch between agent panels": "",
+    "nextPanel": "tab",
+    "prevPanel": "shift+tab",
+
+    "// Focus specific agent (by shortcut number)": "",
+    "focusAgent": "alt+{n}",
+
+    "// Session management": "",
+    "newSession": "ctrl+n",
+    "closeSession": "ctrl+w",
+    "pauseSession": "ctrl+z",
+
+    "// View modes": "",
+    "toggleFullscreen": "ctrl+f",
+    "toggleSplit": "ctrl+\\\\",
+    "showHelp": "?",
+
+    "// Application": "",
+    "quit": "ctrl+q",
+    "commandPalette": "ctrl+p"
+  }
+}

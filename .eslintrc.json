@@ -1,0 +1,303 @@
+{
+  // ==========================================================================
+  // Hermes Squad — ESLint Configuration
+  // ==========================================================================
+  // Strict TypeScript rules for maintainability and safety.
+  // Uses flat config compatibility mode for ESLint 8.x with migration path to 9.x.
+  // ==========================================================================
+
+  "root": true,
+
+  // --- Parser Configuration ---
+  // Use TypeScript parser for type-aware linting
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2024,
+    "sourceType": "module",
+    // Enable type-aware rules (requires tsconfig reference)
+    "project": ["./tsconfig.json", "./tsconfig.test.json"],
+    // Needed for decorators and other stage-3+ proposals
+    "ecmaFeatures": {
+      "jsx": false
+    }
+  },
+
+  // --- Plugins ---
+  "plugins": [
+    "@typescript-eslint",    // TypeScript-specific rules
+    "import",                // Import/export validation
+    "jest",                  // Jest testing patterns
+    "prettier",             // Prettier integration (must be last)
+    "security",             // Security best practices
+    "unicorn"              // Modern JS/TS patterns
+  ],
+
+  // --- Extends (order matters — later configs override earlier ones) ---
+  "extends": [
+    // Core ESLint recommended rules
+    "eslint:recommended",
+    // TypeScript recommended (disables ESLint rules that conflict with TS)
+    "plugin:@typescript-eslint/recommended",
+    // Strict type-checked rules (requires parserOptions.project)
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    // Strict stylistic rules
+    "plugin:@typescript-eslint/strict",
+    // Import plugin recommended
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    // Security plugin
+    "plugin:security/recommended-legacy",
+    // Unicorn recommended (modern patterns)
+    "plugin:unicorn/recommended",
+    // Prettier must be LAST to override formatting rules
+    "plugin:prettier/recommended"
+  ],
+
+  // --- Environment ---
+  "env": {
+    "node": true,
+    "es2024": true
+  },
+
+  // --- Import Resolution ---
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
+    }
+  },
+
+  // --- Rules ---
+  "rules": {
+    // ========================================================================
+    // TypeScript Strict Rules
+    // ========================================================================
+
+    // Require explicit return types on exported functions for API clarity
+    "@typescript-eslint/explicit-function-return-type": ["error", {
+      "allowExpressions": true,
+      "allowTypedFunctionExpressions": true,
+      "allowHigherOrderFunctions": true,
+      "allowDirectConstAssertionInArrowFunctions": true
+    }],
+
+    // Require explicit accessibility modifiers on class members
+    "@typescript-eslint/explicit-member-accessibility": ["error", {
+      "accessibility": "explicit",
+      "overrides": {
+        "constructors": "no-public"
+      }
+    }],
+
+    // Disallow `any` type — use `unknown` instead for type safety
+    "@typescript-eslint/no-explicit-any": "error",
+
+    // Warn on unused variables (allow underscore-prefixed ones)
+    "@typescript-eslint/no-unused-vars": ["error", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_",
+      "destructuredArrayIgnorePattern": "^_"
+    }],
+
+    // Require handling of Promises (no floating promises)
+    "@typescript-eslint/no-floating-promises": "error",
+
+    // Require await in async functions (don't make functions async for no reason)
+    "@typescript-eslint/require-await": "error",
+
+    // Disallow non-null assertions (!) — handle null explicitly
+    "@typescript-eslint/no-non-null-assertion": "error",
+
+    // Prefer nullish coalescing (??) over logical OR (||) for defaults
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+
+    // Prefer optional chaining (?.) over && chains
+    "@typescript-eslint/prefer-optional-chaining": "error",
+
+    // Strict boolean expressions — no implicit coercions in conditions
+    "@typescript-eslint/strict-boolean-expressions": ["error", {
+      "allowString": false,
+      "allowNumber": false,
+      "allowNullableObject": true,
+      "allowNullableBoolean": true,
+      "allowNullableString": false,
+      "allowNullableNumber": false,
+      "allowAny": false
+    }],
+
+    // Enforce consistent type imports (import type { ... })
+    "@typescript-eslint/consistent-type-imports": ["error", {
+      "prefer": "type-imports",
+      "fixStyle": "inline-type-imports"
+    }],
+
+    // Enforce consistent type exports
+    "@typescript-eslint/consistent-type-exports": "error",
+
+    // Naming conventions
+    "@typescript-eslint/naming-convention": [
+      "error",
+      // Interfaces should NOT be prefixed with 'I'
+      { "selector": "interface", "format": ["PascalCase"] },
+      // Type aliases in PascalCase
+      { "selector": "typeAlias", "format": ["PascalCase"] },
+      // Enum members in PascalCase
+      { "selector": "enumMember", "format": ["PascalCase"] },
+      // Boolean variables should be prefixed
+      { "selector": "variable", "types": ["boolean"], "format": ["PascalCase"], "prefix": ["is", "has", "should", "can", "did", "will"] },
+      // Constants in UPPER_CASE or camelCase
+      { "selector": "variable", "modifiers": ["const"], "format": ["camelCase", "UPPER_CASE", "PascalCase"] }
+    ],
+
+    // ========================================================================
+    // Import Rules
+    // ========================================================================
+
+    // Enforce import order: builtin > external > internal > relative
+    "import/order": ["error", {
+      "groups": [
+        "builtin",
+        "external",
+        "internal",
+        "parent",
+        "sibling",
+        "index",
+        "type"
+      ],
+      "pathGroups": [
+        // Treat @hermes-squad/* as internal imports
+        { "pattern": "@hermes-squad/**", "group": "internal", "position": "before" }
+      ],
+      "newlines-between": "always",
+      "alphabetize": { "order": "asc", "caseInsensitive": true }
+    }],
+
+    // No circular dependencies (can cause runtime issues)
+    "import/no-cycle": ["error", { "maxDepth": 3 }],
+
+    // No unused imports
+    "import/no-duplicates": "error",
+
+    // ========================================================================
+    // Unicorn (Modern Patterns)
+    // ========================================================================
+
+    // Allow abbreviations that are common in our domain
+    "unicorn/prevent-abbreviations": ["error", {
+      "allowList": {
+        "args": true,
+        "env": true,
+        "fn": true,
+        "msg": true,
+        "opts": true,
+        "params": true,
+        "props": true,
+        "req": true,
+        "res": true,
+        "ctx": true,
+        "dir": true,
+        "tmp": true,
+        "src": true,
+        "dst": true
+      }
+    }],
+
+    // Allow null (we use null for JSON compatibility)
+    "unicorn/no-null": "off",
+
+    // Filename case — kebab-case for all files
+    "unicorn/filename-case": ["error", {
+      "case": "kebabCase"
+    }],
+
+    // ========================================================================
+    // Security Rules
+    // ========================================================================
+
+    // Prevent command injection in child_process calls
+    "security/detect-child-process": "error",
+
+    // Detect potential regex DoS
+    "security/detect-unsafe-regex": "error",
+
+    // ========================================================================
+    // General Best Practices
+    // ========================================================================
+
+    // No console.log in production code (use structured logger)
+    "no-console": ["error", {
+      "allow": ["warn", "error"]
+    }],
+
+    // Require strict equality (=== and !==)
+    "eqeqeq": ["error", "always"],
+
+    // No var — use const/let
+    "no-var": "error",
+
+    // Prefer const over let when variable is never reassigned
+    "prefer-const": "error",
+
+    // Require error handling in callbacks
+    "no-unused-expressions": "error",
+
+    // Max file length (split large files)
+    "max-lines": ["warn", { "max": 400, "skipBlankLines": true, "skipComments": true }],
+
+    // Max function length
+    "max-lines-per-function": ["warn", { "max": 60, "skipBlankLines": true, "skipComments": true }]
+  },
+
+  // --- Overrides for Specific File Patterns ---
+  "overrides": [
+    {
+      // Test files: relax some rules for testing convenience
+      "files": ["**/*.test.ts", "**/*.spec.ts", "tests/**/*.ts"],
+      "env": { "jest": true },
+      "extends": ["plugin:jest/recommended", "plugin:jest/style"],
+      "rules": {
+        // Allow `any` in tests for mocking flexibility
+        "@typescript-eslint/no-explicit-any": "off",
+        // Allow non-null assertions in tests (we know the test data)
+        "@typescript-eslint/no-non-null-assertion": "off",
+        // Relax function length for complex test setups
+        "max-lines-per-function": "off",
+        // Allow console in tests for debugging
+        "no-console": "off",
+        // Allow magic numbers in tests
+        "@typescript-eslint/no-magic-numbers": "off",
+        // Allow unbound methods in jest.spyOn patterns
+        "@typescript-eslint/unbound-method": "off",
+        "jest/unbound-method": "error"
+      }
+    },
+    {
+      // Script files: relax for CLI tooling
+      "files": ["scripts/**/*.ts"],
+      "rules": {
+        "no-console": "off",
+        "@typescript-eslint/no-floating-promises": "off"
+      }
+    },
+    {
+      // Config files
+      "files": ["*.config.ts", "*.config.js"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ],
+
+  // --- Files to Ignore ---
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    "coverage/",
+    "build/",
+    "*.js",
+    "*.d.ts",
+    "!.eslintrc.js"
+  ]
+}
