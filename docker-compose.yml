@@ -1,0 +1,261 @@
+# =============================================================================
+# Hermes Squad — Docker Compose Configuration
+# =============================================================================
+# Full stack setup for running Hermes Squad with optional services:
+# - hermes: Main application (server/TUI mode)
+# - postgres: Persistent memory storage (session history, agent context)
+# - redis: Optional caching layer for fast state access
+#
+# Usage:
+#   docker compose up              # Start all services
+#   docker compose up hermes       # Start only the app (no DB)
+#   docker compose up -d           # Start in background
+#   docker compose logs -f hermes  # Follow app logs
+#   docker compose down            # Stop everything
+#   docker compose down -v         # Stop and remove volumes (clean slate)
+#
+# Profiles:
+#   docker compose --profile full up       # App + Postgres + Redis
+#   docker compose --profile minimal up    # App only (SQLite for state)
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ===========================================================================
+  # Hermes Squad Application
+  # ===========================================================================
+  hermes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Build arguments for customization
+      args:
+        - NODE_VERSION=20
+    image: hermes-squad:latest
+    container_name: hermes-squad
+
+    # Restart policy: always restart unless explicitly stopped
+    restart: unless-stopped
+
+    # Resource limits to prevent runaway agent processes
+    deploy:
+      resources:
+        limits:
+          # Max 2GB RAM (agents can be memory-hungry)
+          memory: 2G
+          # Max 2 CPU cores
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+    # Port mappings
+    ports:
+      # HTTP API for external integrations
+      - "${HERMES_PORT:-3847}:3847"
+      # ACP protocol port for agent communication
+      - "${ACP_PORT:-3848}:3848"
+
+    # Volume mounts
+    volumes:
+      # Mount the user's workspace (project directory)
+      # Change this path to your project directory
+      - ${WORKSPACE_PATH:-.}:/workspace:rw
+
+      # Persistent data (sessions, state, memory)
+      - hermes-data:/data
+
+      # Custom configuration (optional override)
+      - ./config:/app/config:ro
+
+      # SSH keys for git operations (read-only for security)
+      - ${HOME}/.ssh:/home/hermes/.ssh:ro
+
+      # Git global config
+      - ${HOME}/.gitconfig:/home/hermes/.gitconfig:ro
+
+    # Environment variables
+    environment:
+      # Application mode
+      - HERMES_MODE=${HERMES_MODE:-server}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+
+      # Database connection (uses Postgres when available)
+      - DATABASE_URL=postgresql://hermes:${POSTGRES_PASSWORD:-hermes_dev}@postgres:5432/hermes_squad
+
+      # Redis connection (for caching)
+      - REDIS_URL=redis://redis:6379/0
+
+      # API keys (pass from host environment or .env file)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+
+      # Agent-specific configurations
+      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-20250514}
+      - DEFAULT_AGENT=${DEFAULT_AGENT:-claude}
+
+      # Security
+      - HERMES_AUTH_TOKEN=${HERMES_AUTH_TOKEN}
+
+    # Wait for Postgres to be ready before starting
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3847/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    # Networking
+    networks:
+      - hermes-net
+
+    # Profiles: include in all profiles
+    profiles: ["full", "minimal", ""]
+
+  # ===========================================================================
+  # PostgreSQL — Persistent Memory & History
+  # ===========================================================================
+  # Stores:
+  # - Session history and outputs
+  # - Agent conversation context
+  # - Skill execution logs
+  # - User preferences and profiles
+  postgres:
+    image: postgres:16-alpine
+    container_name: hermes-postgres
+
+    restart: unless-stopped
+
+    # Resource limits for the database
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+
+    # Port mapping (only expose locally for debugging)
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    # Environment
+    environment:
+      - POSTGRES_USER=hermes
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hermes_dev}
+      - POSTGRES_DB=hermes_squad
+      # Performance tuning for development
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+
+    # Persistent data volume
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Initialization scripts (create tables, indexes, etc.)
+      - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+
+    # Health check — verify Postgres is accepting connections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hermes -d hermes_squad"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    # Networking
+    networks:
+      - hermes-net
+
+    profiles: ["full", ""]
+
+  # ===========================================================================
+  # Redis — Caching & Fast State Access
+  # ===========================================================================
+  # Used for:
+  # - Session state caching (fast reads during TUI rendering)
+  # - Agent heartbeat tracking
+  # - Pub/sub for real-time events between containers
+  # - Rate limiting for API endpoints
+  redis:
+    image: redis:7-alpine
+    container_name: hermes-redis
+
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+
+    # Port mapping
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+    # Redis configuration for persistence
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 100mb
+      --maxmemory-policy allkeys-lru
+      --save 60 100
+      --save 300 1
+
+    # Persistent data
+    volumes:
+      - redis-data:/data
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    # Networking
+    networks:
+      - hermes-net
+
+    profiles: ["full", ""]
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  # Application data (sessions, state, memory)
+  hermes-data:
+    driver: local
+    labels:
+      - "com.hermes-squad.description=Application data and session state"
+
+  # PostgreSQL data
+  postgres-data:
+    driver: local
+    labels:
+      - "com.hermes-squad.description=PostgreSQL database files"
+
+  # Redis data
+  redis-data:
+    driver: local
+    labels:
+      - "com.hermes-squad.description=Redis persistence data"
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  hermes-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+    labels:
+      - "com.hermes-squad.description=Internal network for Hermes Squad services"

@@ -1,0 +1,229 @@
+# =============================================================================
+# Hermes Squad — Electron Builder Configuration
+# =============================================================================
+# Cross-platform packaging configuration for the Electron desktop app.
+# Supports Windows (NSIS/MSI), macOS (DMG/ZIP), and Linux (AppImage/deb/rpm).
+#
+# Docs: https://www.electron.build/configuration
+# =============================================================================
+
+# --- Application Metadata ---
+appId: "com.hermes-squad.app"
+productName: "Hermes Squad"
+copyright: "Copyright © 2024 Hermes Squad Contributors"
+
+# --- Directory Configuration ---
+directories:
+  # TypeScript build output directory
+  output: "dist/electron"
+  # Source directory for Electron main process
+  buildResources: "build"
+  # Application source (after TypeScript compilation)
+  app: "dist/compiled"
+
+# --- Files to Include in Package ---
+files:
+  - "dist/compiled/**/*"
+  - "node_modules/**/*"
+  - "package.json"
+  # Exclude development-only files
+  - "!**/*.{ts,tsx,map}"
+  - "!**/node_modules/.cache/**"
+  - "!**/node_modules/*/{test,tests,__tests__}/**"
+  - "!**/node_modules/*/docs/**"
+  - "!**/*.{md,markdown}"
+
+# --- Extra Files (copied to app root, not asar) ---
+# These files need filesystem access and can't be inside asar archive
+extraFiles:
+  # Default configuration files
+  - from: "config/"
+    to: "config/"
+    filter: ["**/*.json", "!**/*.example.*"]
+  # Shell scripts for agent spawning
+  - from: "scripts/runtime/"
+    to: "scripts/"
+    filter: ["*.sh", "*.ps1"]
+
+# --- Extra Resources (copied to resources/) ---
+extraResources:
+  # App icons and tray icons
+  - from: "build/icons/"
+    to: "icons/"
+
+# --- ASAR Archive Configuration ---
+# Packages app source into an asar archive for faster loading and obfuscation
+asar: true
+asarUnpack:
+  # Native modules must be unpacked from asar
+  - "node_modules/node-pty/**"
+  - "node_modules/better-sqlite3/**"
+  - "node_modules/keytar/**"
+
+# --- Auto-Update Configuration ---
+publish:
+  provider: "github"
+  owner: "hermes-squad"
+  repo: "hermes-squad"
+  releaseType: "release"
+
+# =============================================================================
+# Windows Configuration
+# =============================================================================
+win:
+  # Application icon (256x256 ICO)
+  icon: "build/icons/icon.ico"
+  # Code signing certificate (set via CSC_LINK env var in CI)
+  certificateSubjectName: "Hermes Squad"
+  # Target formats
+  target:
+    - target: "nsis"
+      arch: ["x64"]
+    - target: "msi"
+      arch: ["x64"]
+    - target: "portable"
+      arch: ["x64"]
+
+# NSIS Installer Configuration (Windows)
+nsis:
+  # One-click install (no user interaction needed)
+  oneClick: false
+  # Allow per-machine or per-user installation
+  perMachine: true
+  # Allow user to choose install directory
+  allowToChangeInstallationDirectory: true
+  # Create desktop shortcut
+  createDesktopShortcut: true
+  # Create start menu shortcut
+  createStartMenuShortcut: true
+  # Shortcut name in start menu
+  shortcutName: "Hermes Squad"
+  # Include auto-updater
+  differentialPackage: true
+  # Custom installer script for PATH registration
+  include: "build/installer/nsis-include.nsh"
+  # Add "hermes" to system PATH
+  installerSidebar: "build/installer/sidebar.bmp"
+
+# MSI Configuration (enterprise deployment)
+msi:
+  oneClick: false
+  perMachine: true
+  # WiX feature tree
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+# =============================================================================
+# macOS Configuration
+# =============================================================================
+mac:
+  # Application icon (1024x1024 ICNS)
+  icon: "build/icons/icon.icns"
+  # macOS category for App Store / Finder
+  category: "public.app-category.developer-tools"
+  # Code signing identity (auto-detected from keychain)
+  identity: null
+  # Hardened runtime (required for notarization)
+  hardenedRuntime: true
+  # Gatekeeper assessment
+  gatekeeperAssess: false
+  # Entitlements for sandbox/permissions
+  entitlements: "build/entitlements.mac.plist"
+  entitlementsInherit: "build/entitlements.mac.plist"
+  # Target formats
+  target:
+    - target: "dmg"
+      arch: ["x64", "arm64"]
+    - target: "zip"
+      arch: ["x64", "arm64"]
+
+# DMG Configuration (macOS disk image)
+dmg:
+  # DMG background image
+  background: "build/installer/dmg-background.png"
+  # Icon size in DMG window
+  iconSize: 80
+  # Window size
+  window:
+    width: 540
+    height: 380
+  # Icon positions in DMG
+  contents:
+    - x: 140
+      y: 190
+      type: "file"
+    - x: 400
+      y: 190
+      type: "link"
+      path: "/Applications"
+
+# macOS Notarization (required for Gatekeeper on macOS 10.15+)
+afterSign: "scripts/notarize.js"
+
+# =============================================================================
+# Linux Configuration
+# =============================================================================
+linux:
+  # Application icon (512x512 PNG)
+  icon: "build/icons"
+  # Desktop entry category
+  category: "Development"
+  # Desktop entry description
+  description: "AI-powered multi-agent coding session orchestrator"
+  # Desktop file name
+  desktop:
+    Name: "Hermes Squad"
+    Comment: "Multi-agent coding session orchestrator"
+    Keywords: "ai;coding;agents;terminal"
+    StartupWMClass: "hermes-squad"
+  # Target formats
+  target:
+    - target: "AppImage"
+      arch: ["x64"]
+    - target: "deb"
+      arch: ["x64"]
+    - target: "rpm"
+      arch: ["x64"]
+    - target: "snap"
+      arch: ["x64"]
+
+# Debian package configuration
+deb:
+  # Package dependencies
+  depends:
+    - "git"
+    - "libnotify4"
+    - "libnss3"
+    - "libxss1"
+    - "libxtst6"
+    - "xdg-utils"
+  # Post-install script to add CLI to PATH
+  afterInstall: "build/installer/linux-after-install.sh"
+  afterRemove: "build/installer/linux-after-remove.sh"
+
+# RPM package configuration
+rpm:
+  depends:
+    - "git"
+    - "libnotify"
+    - "nss"
+    - "libXScrnSaver"
+    - "libXtst"
+    - "xdg-utils"
+
+# Snap package configuration
+snap:
+  # Snap confinement level
+  confinement: "classic"
+  # Summary shown in snap store
+  summary: "AI multi-agent coding session orchestrator"
+  # Snap grade
+  grade: "stable"
+
+# =============================================================================
+# Build Hooks
+# =============================================================================
+# Run before the build starts
+beforeBuild: "scripts/hooks/before-build.js"
+# Run after all platforms are built
+afterAllArtifactBuild: "scripts/hooks/after-build.js"
